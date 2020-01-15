@@ -1,0 +1,48 @@
+<html> 
+    <head>
+        <meta charset="utf-8">
+        <title>CRDG 3D Map</title>
+        <!-- include leaflet library -->
+            <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.3/dist/leaflet.css" />
+            <script src="https://cdn-webgl.eegeo.com/eegeojs/api/v0.1.780/eegeo.js"></script>
+            <style>
+            .custom-popup .leaflet-popup-content-wrapper {
+            background:#2c3e50;
+            color:#fff;
+            font-size:16px;
+            line-height:24px;
+            }
+            .custom-popup .leaflet-popup-content-wrapper a {
+            color:rgba(255,255,255,0.5);
+            }
+            .custom-popup .leaflet-popup-tip-container {
+            width:30px;
+            height:15px;
+            }
+            .custom-popup .leaflet-popup-tip {
+            border-left:15px solid transparent;
+            border-right:15px solid transparent;
+            border-top:15px solid #2c3e50;
+            }
+            h1 {
+            color: #ffffff;
+            font-family: arial, sans-serif;
+            font-size: 32px;
+            font-weight: bold;
+            margin-top: 0px;
+            margin-bottom: 1px;
+            }
+            a:link {
+                color: #ffffff;
+            }
+
+                </style>
+            </head>
+  <body style="background-color: #2c3e50;">  
+      <h1 align="center">CRDG Campus Directory</h1>
+  </br>
+    <div class="custom-popup" id="map" style="width: 1000px; height: 400px;"></div>
+  <script src="crdgmap.js">
+  </script> 
+  </body>
+</html>
