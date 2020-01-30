@@ -1,0 +1,445 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+	<title>GeoJSON Example</title>
+	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.3/dist/leaflet.css" />
+	<script src="https://unpkg.com/leaflet@1.0.3/dist/leaflet.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
+	
+<style>
+#wrapper {
+  margin: 0 auto;
+  width: 100%;
+}
+
+#panel{
+ float: left;
+  width: 100%;
+  height:50px;
+background-color: #175B81;
+color:white;
+}
+
+#map {
+  float: left;
+  width: 80%;
+  height:600px;
+}
+
+.sidebar {
+  float: left;
+  width: 20%;
+  height:600px;
+   background-color: white;
+   color: #175B81;
+}
+
+#footer {
+float: left;
+background-color: #175B81;
+color: white;
+  width: 100%;
+  height:25px
+}
+
+.text-labels     {
+	font-weight: bold;
+    color:#006400;
+	font-family: "Arial Black"
+	font-size: 20px ;
+    line-height:25px;
+    text-align:center;
+   }
+   
+table, th, td 
+	{
+		margin:0px 5px;
+		/*border:solid 1px #333; */
+		padding:2px 4px;
+		font:10px Verdana;
+	}
+th {
+		font-size:14px;
+		font-weight:bold
+	}
+td {
+		font-size:14px;
+		font-weight:normal
+	}
+tr {
+		background: white;
+	}
+	
+tbody  tr:hover {
+		background: yellow;
+	}
+table {
+		border-collapse: collapse;
+	}  
+.table a
+{
+    display:block;
+    text-decoration:none;
+}
+#f1{
+	font-weight:bold
+}
+.p2 {
+    font-size: 24px;
+	font-weight:bold;
+    position: relative;
+    top: 11px;
+	left: 20px;
+	display:inline-block;
+}
+	#txtboxes{
+	font-weight:bold;
+	display:inline-block;
+	text-align: right;
+	margin: auto;
+    width: 95%;
+    padding: 10px;
+}
+
+</style>
+</head>
+<body>
+
+<div id="wrapper">
+	<div id="panel">
+		<div id="txtboxes">
+
+		Select on click within 
+				<select id="miles">
+				  <option value='50'>50 Miles</option>
+				  <option value='100' >100 Mile</option>
+				  <option value='150'>150 Miles</option>
+				  <option value='200'>200 Miles</option>
+				  <option value='300'>300 Miles</option>
+				  <option value='500'>500 Miles</option>
+				</select>
+		</div> 
+	</div>
+	<div id="map">  </div>
+  <!-- style div with scrollbar if needed   -->
+	<div class="sidebar" style="overflow: scroll;">
+<p style="text-align:center; font-size: 24px; color:#175B81; font-weight:bold; "> Baseball</p>	 
+			<table  id="myTable" style="width:90%; ">	</table>
+  </div>
+  <div id="footer">  </div>
+  
+</div>
+<script>
+var url = 'BaseBallFinal.json';  
+
+var theMarker;
+var theCircle;
+var geojsonLayer;
+
+	var map = L.map('map').setView([39.0, -98.26], 4); 
+
+	var osm=new L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png',{ 
+				attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'});
+	
+	// https: also suppported.
+	var Esri_WorldImagery = L.tileLayer('http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+		attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+	});
+	
+	// https: also suppported.
+	var Esri_WorldGrayCanvas = L.tileLayer('http://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+		attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ',
+		maxZoom: 16
+	}).addTo(map);;
+	
+	
+	// https: also suppported.
+	var Stamen_TopOSMFeatures = L.tileLayer('http://stamen-tiles-{s}.a.ssl.fastly.net/toposm-features/{z}/{x}/{y}.{ext}', {
+		attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+		subdomains: 'abcd',
+		minZoom: 0,
+		maxZoom: 20,
+		ext: 'png',
+		bounds: [[22, -132], [51, -56]],
+		opacity: 0.9
+	});
+	
+	var OpenStreetMap_BlackAndWhite = L.tileLayer('http://{s}.tiles.wmflabs.org/bw-mapnik/{z}/{x}/{y}.png', {
+	maxZoom: 18,
+	attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+	});
+	//OpenStreetMap_BlackAndWhite.addTo(map);
+	
+	var blue = L.layerGroup([
+        Esri_WorldGrayCanvas,
+		Stamen_TopOSMFeatures
+		]); 
+
+	// Set function for color ramp
+	function getColor(league){
+		return league == 'NL' ? 'blue' :
+			   league == 'AL' ? 'red' :
+								'white';
+	       }	
+	
+	// Set style function that sets fill color property
+	function style(feature) {
+		return {
+			fillColor: setColor(feature.properties.League),
+			fillOpacity: 0.5,
+			weight: 2,
+			opacity: 1,
+			color: '#ffffff',
+			dashArray: '3'
+		};
+	}
+	var highlight = {
+		'fillColor': 'yellow',
+		'weight': 2,
+		'opacity': 1
+	};
+
+	var bbTeam;	
+		
+// Get GeoJSON data and create features.
+  $.getJSON(url, function(data) {
+  
+        bbTeam = L.geoJson(data, {
+			
+            pointToLayer: function(feature, latlng) {
+		
+				return L.circleMarker(latlng, {
+				radius:6,
+				opacity: .5,
+				//color: "#000",
+				color:getColor(feature.properties.League),
+				fillColor:  getColor(feature.properties.League),
+				fillOpacity: 0.8
+
+				});  //.bindTooltip(feature.properties.Name);
+            },
+				onEachFeature: function (feature, layer) {
+					layer._leaflet_id = feature.properties.Team;
+
+				
+					var popupContent = "<p>The <b>" +
+					feature.properties.Team + "</b> play here,</br> They are in the " +
+					feature.properties.League + "</br>" +
+					'<a href="'+ feature.properties.Website +'" target="_blank">Website</a></p>' ;
+							
+					if (feature.properties && feature.properties.popupContent) {
+						popupContent += feature.properties.popupContent;
+					}
+						layer.bindPopup(popupContent);
+				
+				
+				
+				/*
+						layer.on('click', function (e) {
+ 
+							lat = e.latlng.lat;
+							lon = e.latlng.lng;
+							//ProcessClick(lat,lon);	
+				
+							
+							//place attributes in panel table.
+								var fieldA=document.getElementById('pict');
+								fieldA.innerHTML='<img src="' +e.target.feature.properties.Logo +'">';
+								var fieldB=document.getElementById('pict2');
+								fieldB.innerHTML='<img src="' +e.target.feature.properties.LeagueLogo +'">';
+								
+								var field1=document.getElementById('f1');
+								field1.innerHTML=e.target.feature.properties.League;
+								var field2=document.getElementById('f2');
+								field2.innerHTML=e.target.feature.properties.Team;
+								var field3=document.getElementById('f3');
+								field3.innerHTML=e.target.feature.properties.Address;
+								var field4=document.getElementById('f4');
+								field4.innerHTML=e.target.feature.properties.Stadium;
+								var field5=document.getElementById('f5');
+								field5.innerHTML=e.target.feature.properties.Capacity;
+								var field6=document.getElementById('f6');
+								var wsite = e.target.feature.properties.Website;
+								if (wsite !== null){ 
+								field6.innerHTML ='<a href="'+ wsite +'" target="_blank">website</a>' ;
+								} else{
+								field6.innerHTML = 'No site recorded';
+								}
+					});
+					*/	  //http://www.gistechsolutions.com/leaflet/DEMO/Table/GenerateTable.html
+					//https://www.electrictoolbox.com/jquey-make-entire-table-row-clickable/
+					//<tr onclick="location.href = this.getElementsByTagName("a").item(0).getAttribute("href");"><td><a href="/index.asp">Home</a></td></tr>
+					//https://stackoverflow.com/questions/4919629/html-css-how-to-create-scrollbar-for-tr?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa
+					
+					
+				}
+				}).addTo(map);
+        });
+		
+//////////////////////////	
+var baseMaps = {
+    "Open Street Map": osm,
+    "Imagery":Esri_WorldImagery,
+	"Gray":Esri_WorldGrayCanvas,
+	"Blue Base":blue,
+	"OSM B&W":OpenStreetMap_BlackAndWhite
+};
+
+var overlayMaps = {};	
+//Add layer control
+L.control.layers(baseMaps, overlayMaps).addTo(map);
+//////////////////////
+
+  map.on('click',function(e){  
+		lat = e.latlng.lat;
+		lon = e.latlng.lng;
+		ProcessClick(lat,lon)	
+  });
+
+
+/*
+// click marker
+  var clickmark;
+
+  // When you click on a circle, it calls the onMapClick function and passes the layers coordinates.
+  // I grab the coords which are X,Y, and I need to flip them to latLng for a marker,  
+  function onMapClick(coords) {
+		console.log(coords);
+		var thecoords = coords.toString().split(',');
+		var lat = thecoords[1];
+		var lng = thecoords[0];
+		//if prior marker exists, remove it.
+		if (clickmark != undefined) {
+		  map.removeLayer(clickmark);
+		};
+  
+		 clickmark = L.circleMarker([lat,lng],{
+			radius: 8,
+			//opacity: 1,
+			color: "yellow",
+			fillColor:  "yellow",
+			fillOpacity: 0.8}
+		 ).addTo(map);
+	}
+// end of code for click marker.
+
+*/
+
+function ProcessClick(lat,lon){
+	console.log("You clicked the map at LAT: "+ lat+" and LONG: "+lon );
+	
+		//Clear existing marker, circle, and selected points if selecting new points
+		if (theCircle != undefined) {
+		  map.removeLayer(theCircle);
+		};
+		if (theMarker != undefined) {
+			  map.removeLayer(theMarker);
+		};
+		if (geojsonLayer != undefined) {
+			  map.removeLayer(geojsonLayer);
+		};
+		
+	//Add a marker to show where you clicked.
+	 theMarker = L.marker([lat,lon]).addTo(map);  
+	SelectPoints(lat,lon);
+};
+
+	var selPts = [];
+
+function SelectPoints(lat,lon){
+	var dist = document.getElementById("miles").value;
+
+	xy = [lat,lon];  //center point of circle
+	
+	var theRadius = parseInt(dist) * 1609.34  //1609.34 meters in a mile 
+	//dist is a string so it's convered to an Interger.
+	
+	selPts.length =0;  //Reset the array if selecting new points
+	
+	bbTeam.eachLayer(function (layer) {
+		// Lat, long of current point as it loops through.
+		layer_lat_long = layer.getLatLng();
+		
+		// Distance from our circle marker To current point in meters
+		distance_from_centerPoint = layer_lat_long.distanceTo(xy);
+		
+		// See if meters is within radius, add the to array
+		if (distance_from_centerPoint <= theRadius) {
+			 selPts.push(layer.feature);  
+		}
+	});
+
+	// draw circle to see the selection area
+	theCircle = L.circle(xy, theRadius , {   /// Number is in Meters
+	  color: 'orange',
+	  fillOpacity: 0,
+	  opacity: 1
+	}).addTo(map);
+	
+	//Symbolize the Selected Points
+		 geojsonLayer = L.geoJson(selPts, {
+		 
+			pointToLayer: function(feature, latlng) {
+				return L.circleMarker(latlng, {
+				radius: 4, //expressed in pixels circle size
+				color: "green", 
+				stroke: true,
+				weight: 7,		//outline width  increased width to look like a filled circle.
+				fillOpcaity: 1
+				});
+				}
+		});
+		//Add selected points back into map as green circles.
+		map.addLayer(geojsonLayer);
+		
+		//Take array of features and make a GeoJSON feature collection 
+		var GeoJS = { type: "FeatureCollection",  features: selPts   };
+		
+		//Show number of selected features.
+		console.log(GeoJS.features.length +" Selected features");
+		
+		 // show selected GEOJSON data in console
+		console.log(JSON.stringify(GeoJS));
+	
+	//////////////////////////////////////////
+
+		/// Putting the selected team name in the table
+	
+		//Clean up prior records
+		$("#myTable tr").remove(); 
+		
+		var table = document.getElementById("myTable");
+		 //Add the header row.
+		var row = table.insertRow(-1);
+        var headerCell = document.createElement("th");
+        headerCell.innerHTML = "Team";  //Fieldname
+        row.appendChild(headerCell);
+		
+	    //Add the data rows. 
+		//console.log(selPts);		
+		for (var i = 0; i < selPts.length; i++) {
+			//console.log(selPts[i].properties.Team);
+			row = table.insertRow(-1);
+        
+           var cell = row.insertCell(-1);
+            cell.innerHTML = selPts[i].properties.Team;
+		}
+		  //Get the Team name in the cell.
+		 $('#myTable tr').click(function(x) {
+			theTeam = (this.getElementsByTagName("td").item(0)).innerHTML;
+			console.log(theTeam);
+			map._layers[theTeam].fire('click');
+			var coords = map._layers[theTeam]._latlng;
+			console.log(coords);
+			map.setView(coords, 12);
+		 });
+		
+
+};	//end of SelectPoints function
+
+
+ </script>
+
+</body>
+</html>

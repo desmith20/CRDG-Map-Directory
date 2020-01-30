@@ -10,46 +10,38 @@
                     map.setView([21.297977, -157.822357], 21, {headingDegrees: 204.374, tiltDegrees:0.0});
                     }, 5000);
 
-                    var coll = document.getElementsByClassName("collapsible");
-                    var c;
-
-                    for (c = 0; c < coll.length; c++) {
-                    coll[c].addEventListener("click", function() {
-                    this.classList.toggle("active");
-                    var content = this.nextElementSibling;
-                    if (content.style.maxHeight){
-                    content.style.maxHeight = null;
-                    } else {
-                    content.style.maxHeight = content.scrollHeight + "px";
-                    } 
-                    });
-                        }
-
                     // it.crdg.hawaii.edu/opihi-test
-                    let itDepartment = 
-                    "<h3>IT Department </h3> <hr> <ul> \
-                        <li><a href='https://coe.hawaii.edu/directory/index.php?person=yapm' target='_blank'> Mark Yap </a></li>\
-                        <li> Richard Tran </li>\
-                         <li> Gary Romero </li>\
-                          <li> Rob Nakama </li>\
-                           <li> Dan Smith</li>\
-                            </ul>";
-                    
-                    let parkingLot = 
-                    " <button type='button' class='collapsible'>Open Collapsible</button>\
-                    <div class='content'>\
-                        <p>Lorem ipsum...</p>\
-                    </div> ";
 
-                    let mathDepartment = 
-                    "<details>\
-                        <summary>See More</summary>\
-                        This text will be hidden if your browser supports it.\
-                        </details>";
+                    let div_element = document.createElement("div");
+
+                    let p_element = document.createElement("p");
+                    p_element.innerHTML = "That is Mark";
+
+                    let markYap = document.createElement("a");
+                    markYap.href = "https://coe.hawaii.edu/directory/index.php?person=yapm"
+                    markYap.target = "_blank"
+                    markYap.innerHTML = "Mark Yap"
+                    
+
+                    let itDepartment = 
+                    "<h3>IT Department </h3> <hr> <ul>"+
+                        "<a href='https://coe.hawaii.edu/directory/index.php?person=yapm' target='_blank'> Mark Yap </a>"+
+                        "<li> Richard Tran </li>"+
+                         "<li> Gary Romero </li>"+
+                          "<li> Rob Nakama </li>"+
+                           "<li> Dan Smith</li>"+
+                           "<br />'<a href='https://google.com/' target='_blank'>metadata</a>'";
+                            "</ul>";
+                    
+                    
+
+                    mathDepartment = markYap;
+
+
 
                     let crdgLocations = [
 		            [itDepartment,21.297891, -157.822502],
-		            [parkingLot,21.298695, -157.822495],
+		            ["parkingLot",21.298695, -157.822495],
                     ["COE Portables",21.298417, -157.822520],
                     ["Everly Hall",21.298817, -157.821971],
                     ["Wist Hall",21.298470, -157.821961],
